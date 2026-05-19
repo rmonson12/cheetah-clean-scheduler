@@ -122,6 +122,7 @@
   }
   .summary-stat .value { font-family: 'Rubik', sans-serif; font-size: 1.75rem; font-weight: 900; color: var(--blue-deep); }
   .summary-stat .label { font-family: 'Rubik', sans-serif; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  .summary-stat.cost-stat { border-top-color: var(--green); }
 
   .toolbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
   .toolbar select { width: auto; margin-bottom: 0; }
@@ -147,6 +148,9 @@
   .badge-pt { background: rgba(252,176,64,0.15); color: #b87a1a; }
   .badge-salary { background: rgba(44,56,143,0.1); color: var(--blue-deep); }
   .badge-hourly { background: rgba(40,169,225,0.12); color: #1a7ab0; }
+  .badge-off { background: rgba(217,83,79,0.12); color: var(--red); }
+  .badge-avail { background: rgba(141,199,64,0.12); color: #5a8c1a; }
+  .badge-shift { background: rgba(44,56,143,0.08); color: var(--blue-deep); }
 
   .toast {
     position: fixed; bottom: 2rem; right: 2rem; background: var(--green); color: white;
@@ -214,8 +218,8 @@
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: white; border-radius: 12px; padding: 1.5rem; max-width: 600px; width: 90%;
-    max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    background: white; border-radius: 12px; padding: 1.5rem; max-width: 700px; width: 90%;
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   }
   .modal h3 { margin-bottom: 1rem; }
   .modal .close-btn {
@@ -226,6 +230,44 @@
   .assign-check input[type="checkbox"] { width: auto; margin: 0; }
   .assign-check label { margin: 0; text-transform: none; font-size: 0.85rem; font-weight: 400; color: var(--text); }
   .assign-check .emp-meta { font-size: 0.75rem; color: var(--text-muted); }
+  .assign-check .avail-indicator { font-size: 0.7rem; margin-left: 0.25rem; }
+
+  /* Shift section in modal */
+  .shift-section { margin-bottom: 1rem; border: 1px solid var(--surface-2); border-radius: 8px; overflow: hidden; }
+  .shift-header {
+    background: rgba(44,56,143,0.06); padding: 0.6rem 1rem; font-family: 'Rubik', sans-serif;
+    font-weight: 700; font-size: 0.85rem; color: var(--blue-deep); display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .shift-header .shift-time { font-weight: 400; font-size: 0.8rem; color: var(--text-muted); }
+  .shift-body { padding: 0.5rem 1rem; }
+
+  /* Shift config cards */
+  .shift-config-card {
+    background: var(--surface); border: 1px solid var(--surface-2); border-radius: 10px;
+    padding: 0.75rem 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;
+  }
+  .shift-config-card .shift-name { font-weight: 700; font-family: 'Rubik', sans-serif; min-width: 100px; }
+
+  /* Availability calendar */
+  .avail-calendar { display: grid; grid-template-columns: 120px repeat(7, 1fr); gap: 1px; background: var(--surface-2); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+  .avail-cell {
+    background: white; padding: 0.4rem; text-align: center; font-size: 0.75rem; min-height: 36px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s;
+  }
+  .avail-cell.header { background: var(--blue-deep); color: white; font-family: 'Rubik', sans-serif; font-weight: 600; font-size: 0.7rem; cursor: default; }
+  .avail-cell.emp-name { background: rgba(44,56,143,0.04); font-weight: 600; font-size: 0.75rem; justify-content: flex-start; padding-left: 0.5rem; cursor: default; }
+  .avail-cell.available { background: rgba(141,199,64,0.15); }
+  .avail-cell.off { background: rgba(217,83,79,0.12); color: var(--red); }
+  .avail-cell:not(.header):not(.emp-name):hover { background: rgba(40,169,225,0.1); }
+
+  /* Labor cost display */
+  .labor-cost { font-family: 'Rubik', sans-serif; font-weight: 700; color: var(--green-dark); font-size: 0.85rem; }
+  .labor-cost.high { color: var(--red); }
+
+  /* Shift breakdown in forecast */
+  .shift-breakdown { font-size: 0.7rem; line-height: 1.5; color: var(--text-muted); }
+  .shift-breakdown .shift-line { display: flex; gap: 0.35rem; align-items: center; }
 </style>
 </head>
 <body>
@@ -302,55 +344,81 @@
   <!-- EMPLOYEES -->
   <section id="employees" class="section">
     <h2>Employee Roster</h2>
-    <div class="card">
-      <h3>Add Employee</h3>
-      <div class="grid-4">
-        <div><label>First Name</label><input type="text" id="emp-first" placeholder="First name"></div>
-        <div><label>Last Name</label><input type="text" id="emp-last" placeholder="Last name"></div>
-        <div><label>Role</label>
-          <select id="emp-role">
-            <option value="gm">General Manager</option>
-            <option value="am">Assistant Manager</option>
-            <option value="mod">Manager on Duty</option>
-            <option value="wt" selected>Wash Tech</option>
-          </select>
-        </div>
-        <div><label>Location</label><select id="emp-location"></select></div>
-      </div>
-      <div class="grid-4">
-        <div><label>Employment Type</label>
-          <select id="emp-type">
-            <option value="ft">Full-Time</option>
-            <option value="pt">Part-Time</option>
-          </select>
-        </div>
-        <div><label>Pay Type</label>
-          <select id="emp-pay">
-            <option value="hourly">Hourly</option>
-            <option value="salary">Salary</option>
-          </select>
-        </div>
-        <div><label>Hourly Rate / Annual Salary</label><input type="number" id="emp-rate" placeholder="e.g., 15.00" step="0.01" min="0"></div>
-        <div><label>Max Hours/Week</label><input type="number" id="emp-max-hours" placeholder="e.g., 40" min="1" max="80"></div>
-      </div>
-      <button class="btn btn-primary" onclick="addEmployee()">Add Employee</button>
+    <div class="sub-tabs">
+      <button class="active" onclick="switchSubTab('employees', 'emp-roster', this)">Roster</button>
+      <button onclick="switchSubTab('employees', 'emp-availability', this)">Availability</button>
     </div>
 
-    <div class="toolbar" style="margin-top:0.5rem">
-      <h3 style="margin-bottom:0">Your Team</h3>
-      <div style="flex:1"></div>
-      <label style="margin:0;width:auto">Filter Location:</label>
-      <select id="emp-filter-loc" style="width:auto;margin:0" onchange="renderEmployees()"><option value="all">All Locations</option></select>
-      <label style="margin:0;width:auto">Filter Role:</label>
-      <select id="emp-filter-role" style="width:auto;margin:0" onchange="renderEmployees()">
-        <option value="all">All Roles</option>
-        <option value="gm">General Manager</option>
-        <option value="am">Assistant Manager</option>
-        <option value="mod">Manager on Duty</option>
-        <option value="wt">Wash Tech</option>
-      </select>
+    <div id="emp-roster" class="sub-section active">
+      <div class="card">
+        <h3>Add Employee</h3>
+        <div class="grid-4">
+          <div><label>First Name</label><input type="text" id="emp-first" placeholder="First name"></div>
+          <div><label>Last Name</label><input type="text" id="emp-last" placeholder="Last name"></div>
+          <div><label>Role</label>
+            <select id="emp-role">
+              <option value="gm">General Manager</option>
+              <option value="am">Assistant Manager</option>
+              <option value="mod">Manager on Duty</option>
+              <option value="wt" selected>Wash Tech</option>
+            </select>
+          </div>
+          <div><label>Location</label><select id="emp-location"></select></div>
+        </div>
+        <div class="grid-4">
+          <div><label>Employment Type</label>
+            <select id="emp-type">
+              <option value="ft">Full-Time</option>
+              <option value="pt">Part-Time</option>
+            </select>
+          </div>
+          <div><label>Pay Type</label>
+            <select id="emp-pay">
+              <option value="hourly">Hourly</option>
+              <option value="salary">Salary</option>
+            </select>
+          </div>
+          <div><label>Hourly Rate / Annual Salary</label><input type="number" id="emp-rate" placeholder="e.g., 15.00" step="0.01" min="0"></div>
+          <div><label>Max Hours/Week</label><input type="number" id="emp-max-hours" placeholder="e.g., 40" min="1" max="80"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addEmployee()">Add Employee</button>
+      </div>
+
+      <div class="toolbar" style="margin-top:0.5rem">
+        <h3 style="margin-bottom:0">Your Team</h3>
+        <div style="flex:1"></div>
+        <label style="margin:0;width:auto">Filter Location:</label>
+        <select id="emp-filter-loc" style="width:auto;margin:0" onchange="renderEmployees()"><option value="all">All Locations</option></select>
+        <label style="margin:0;width:auto">Filter Role:</label>
+        <select id="emp-filter-role" style="width:auto;margin:0" onchange="renderEmployees()">
+          <option value="all">All Roles</option>
+          <option value="gm">General Manager</option>
+          <option value="am">Assistant Manager</option>
+          <option value="mod">Manager on Duty</option>
+          <option value="wt">Wash Tech</option>
+        </select>
+      </div>
+      <div id="employee-list"></div>
     </div>
-    <div id="employee-list"></div>
+
+    <div id="emp-availability" class="sub-section">
+      <div class="toolbar">
+        <h3 style="margin-bottom:0">Weekly Availability</h3>
+        <div style="flex:1"></div>
+        <label style="margin:0;width:auto">Location:</label>
+        <select id="avail-loc-filter" style="width:auto;margin:0" onchange="renderAvailability()"></select>
+        <label style="margin:0;width:auto">Week of:</label>
+        <input type="date" id="avail-week-start" style="width:auto;margin:0" onchange="renderAvailability()">
+        <button class="btn btn-sm btn-outline" onclick="availPrevWeek()">← Prev</button>
+        <button class="btn btn-sm btn-outline" onclick="availNextWeek()">Next →</button>
+      </div>
+      <p class="note" style="margin-bottom:1rem;font-style:normal;color:var(--text-muted)">
+        Click cells to cycle: <span class="badge badge-avail">Available</span> →
+        <span class="badge badge-off">Off</span> → <span style="font-size:0.75rem">(blank = default available)</span>.
+        Shift-click to mark an entire row.
+      </p>
+      <div id="avail-calendar-container"></div>
+    </div>
   </section>
 
   <!-- STAFFING RULES -->
@@ -359,6 +427,7 @@
     <div class="sub-tabs">
       <button class="active" onclick="switchSubTab('rules', 'weather-rules', this)">Weather Rules</button>
       <button onclick="switchSubTab('rules', 'role-scaling', this)">Role Scaling</button>
+      <button onclick="switchSubTab('rules', 'shift-config', this)">Shifts</button>
     </div>
 
     <div id="weather-rules" class="sub-section active">
@@ -382,6 +451,13 @@
         <button class="btn btn-primary" onclick="saveState(); showToast('Role scaling saved!')">Save Scaling</button>
       </div>
     </div>
+
+    <div id="shift-config" class="sub-section">
+      <p class="note" style="margin-bottom:1rem;font-style:normal;color:var(--text-muted)">
+        Define shifts for each location. Employees will be assigned to specific shifts when scheduling.
+      </p>
+      <div id="shift-config-grid"></div>
+    </div>
   </section>
 
   <!-- SETTINGS -->
@@ -402,9 +478,10 @@
     <div class="card">
       <h3>About</h3>
       <p style="color:var(--text-muted);font-size:0.9rem">
-        Cheetah Clean Staff Scheduler v2.0<br>
+        Cheetah Clean Staff Scheduler v3.0<br>
         Weather data powered by <a href="https://open-meteo.com/" target="_blank" style="color:var(--blue-sky)">Open-Meteo</a> (free, no API key required).<br>
-        Forecast range: up to 16 days. Data refreshes on demand.
+        Forecast range: up to 16 days. Data refreshes on demand.<br>
+        Features: Weather-based staffing, shift scheduling, availability tracking, labor cost projections.
       </p>
     </div>
   </section>
@@ -416,6 +493,10 @@
     <button class="close-btn" onclick="closeAssignModal()">&times;</button>
     <h3 id="assign-modal-title">Assign Employees</h3>
     <div id="assign-modal-body"></div>
+    <div id="assign-modal-cost" style="margin-top:0.75rem;padding:0.75rem;background:rgba(141,199,64,0.08);border-radius:8px;display:none">
+      <strong style="font-family:'Rubik',sans-serif;font-size:0.85rem;color:var(--blue-deep)">Estimated Day Cost:</strong>
+      <span id="assign-modal-cost-value" class="labor-cost" style="margin-left:0.5rem">$0.00</span>
+    </div>
     <div style="margin-top:1rem;display:flex;gap:0.5rem">
       <button class="btn btn-primary" onclick="saveAssignments()">Save</button>
       <button class="btn btn-outline" onclick="closeAssignModal()">Cancel</button>
@@ -438,6 +519,8 @@ const ROLES = [
 let state = loadState();
 let forecastCache = {};
 let currentAssignKey = null;
+let currentAssignLocId = null;
+let currentAssignDate = null;
 
 function defaultState() {
   return {
@@ -445,12 +528,21 @@ function defaultState() {
     employees: [],
     rules: defaultRules(),
     roleScaling: {},
-    assignments: {},
+    assignments: {},  // key: locId_date_shiftId => [empId, ...]
+    shifts: {},       // key: locId => [{id, name, startHour, endHour}]
+    availability: {}, // key: empId_date => 'available' | 'off'
     tempUnit: 'F',
     forecastDays: 14,
     overrides: {},
     activeLocations: []
   };
+}
+
+function defaultShifts() {
+  return [
+    { id: 'morning', name: 'Morning', startHour: 6, endHour: 14 },
+    { id: 'afternoon', name: 'Afternoon', startHour: 14, endHour: 22 }
+  ];
 }
 
 function defaultRoleScaling(locId) {
@@ -488,11 +580,39 @@ function loadState() {
       if (!p.employees) p.employees = [];
       if (!p.roleScaling) p.roleScaling = {};
       if (!p.assignments) p.assignments = {};
+      if (!p.shifts) p.shifts = {};
+      if (!p.availability) p.availability = {};
+
+      // Migrate old assignment format (locId_date => locId_date_shiftId)
+      migrateAssignments(p);
+
       return p;
     }
   } catch(e) {}
   return defaultState();
 }
+
+function migrateAssignments(p) {
+  const newAssignments = {};
+  let migrated = false;
+  for (const [key, value] of Object.entries(p.assignments)) {
+    // Old format: locId_YYYY-MM-DD (2 underscore-separated parts where second contains dashes)
+    // New format: locId_YYYY-MM-DD_shiftId (3 underscore-separated parts)
+    const parts = key.split('_');
+    if (parts.length === 2 && parts[1].includes('-')) {
+      // Old format - migrate to first shift (morning)
+      const newKey = key + '_morning';
+      newAssignments[newKey] = value;
+      migrated = true;
+    } else {
+      newAssignments[key] = value;
+    }
+  }
+  if (migrated) {
+    p.assignments = newAssignments;
+  }
+}
+
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
 // ========== HELPERS ==========
@@ -504,6 +624,20 @@ function roleColor(id) { return ROLES.find(r => r.id === id)?.color || '#999'; }
 function locName(id) { return state.locations.find(l => l.id === id)?.name || 'Unknown'; }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
 
+function getShifts(locId) {
+  return state.shifts[locId] || defaultShifts();
+}
+function shiftHours(shift) {
+  let h = shift.endHour - shift.startHour;
+  if (h < 0) h += 24; // overnight
+  return h;
+}
+function formatHour(h) {
+  if (h === 0 || h === 24) return '12 AM';
+  if (h === 12) return '12 PM';
+  return h < 12 ? h + ' AM' : (h - 12) + ' PM';
+}
+
 // ========== NAV ==========
 document.querySelectorAll('header nav button').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -513,14 +647,15 @@ function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === tab));
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'locations') renderLocations();
-  if (tab === 'employees') { populateEmpLocFilter(); renderEmployees(); }
-  if (tab === 'rules') { renderRules(); renderRoleScaling(); }
+  if (tab === 'employees') { populateEmpLocFilter(); renderEmployees(); initAvailability(); }
+  if (tab === 'rules') { renderRules(); renderRoleScaling(); renderShiftConfig(); }
 }
 function switchSubTab(sectionId, subId, btn) {
   const section = document.getElementById(sectionId);
   section.querySelectorAll('.sub-tabs button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   section.querySelectorAll('.sub-section').forEach(s => s.classList.toggle('active', s.id === subId));
+  if (subId === 'emp-availability') initAvailability();
 }
 
 // ========== LOCATIONS ==========
@@ -557,10 +692,12 @@ async function addLocation() {
   state.locations.push(loc);
   state.activeLocations.push(loc.id);
   state.roleScaling[loc.id] = defaultRoleScaling(loc.id);
+  state.shifts[loc.id] = defaultShifts();
   saveState();
   ['loc-name','loc-city','loc-state','loc-zip','loc-base-staff','loc-min-staff'].forEach(id => document.getElementById(id).value = '');
   showToast(`${name} added!`);
   renderLocations();
+  populateEmpLocSelect();
 }
 
 function deleteLocation(id) {
@@ -568,7 +705,7 @@ function deleteLocation(id) {
   state.locations = state.locations.filter(l => l.id !== id);
   state.activeLocations = state.activeLocations.filter(a => a !== id);
   state.employees = state.employees.filter(e => e.locationId !== id);
-  delete state.overrides[id]; delete state.roleScaling[id];
+  delete state.overrides[id]; delete state.roleScaling[id]; delete state.shifts[id];
   Object.keys(state.assignments).forEach(k => { if (k.startsWith(id)) delete state.assignments[k]; });
   saveState(); renderLocations();
 }
@@ -579,11 +716,14 @@ function renderLocations() {
   c.innerHTML = state.locations.map(loc => {
     const emps = state.employees.filter(e => e.locationId === loc.id);
     const byRole = ROLES.map(r => { const count = emps.filter(e => e.role === r.id).length; return count ? `${count} ${r.abbr}` : ''; }).filter(Boolean).join(', ');
+    const shifts = getShifts(loc.id);
+    const shiftStr = shifts.map(s => s.name).join(', ');
     return `<div class="location-card">
       <h3>${esc(loc.name)}</h3>
       <div class="meta">${esc(loc.city)}, ${esc(loc.state)} ${esc(loc.zip)}</div>
       <div class="meta">Base: ${loc.baseStaff} | Min: ${loc.minStaff} | Employees: ${emps.length}</div>
       ${byRole ? `<div class="meta">${byRole}</div>` : ''}
+      <div class="meta">Shifts: ${esc(shiftStr)}</div>
       <div style="margin-top:0.5rem"><button class="btn btn-sm btn-danger" onclick="deleteLocation('${loc.id}')">Remove</button></div>
     </div>`;
   }).join('');
@@ -631,6 +771,10 @@ function deleteEmployee(id) {
   Object.keys(state.assignments).forEach(k => {
     if (state.assignments[k]) state.assignments[k] = state.assignments[k].filter(eid => eid !== id);
   });
+  // Clean up availability
+  Object.keys(state.availability).forEach(k => {
+    if (k.startsWith(id + '_')) delete state.availability[k];
+  });
   saveState(); renderEmployees();
 }
 
@@ -660,6 +804,229 @@ function renderEmployees() {
       <td>${e.maxHours}h</td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteEmployee('${e.id}')">Remove</button></td>
     </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ========== AVAILABILITY ==========
+function initAvailability() {
+  const locSel = document.getElementById('avail-loc-filter');
+  locSel.innerHTML = state.locations.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
+
+  const weekInput = document.getElementById('avail-week-start');
+  if (!weekInput.value) {
+    // Set to current Monday
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    weekInput.value = monday.toISOString().split('T')[0];
+  }
+  renderAvailability();
+}
+
+function availPrevWeek() {
+  const inp = document.getElementById('avail-week-start');
+  const d = new Date(inp.value + 'T12:00:00');
+  d.setDate(d.getDate() - 7);
+  inp.value = d.toISOString().split('T')[0];
+  renderAvailability();
+}
+function availNextWeek() {
+  const inp = document.getElementById('avail-week-start');
+  const d = new Date(inp.value + 'T12:00:00');
+  d.setDate(d.getDate() + 7);
+  inp.value = d.toISOString().split('T')[0];
+  renderAvailability();
+}
+
+function renderAvailability() {
+  const container = document.getElementById('avail-calendar-container');
+  const locId = document.getElementById('avail-loc-filter')?.value;
+  const weekStart = document.getElementById('avail-week-start')?.value;
+
+  if (!locId || !weekStart) {
+    container.innerHTML = '<div class="empty-state"><p>Select a location and week.</p></div>';
+    return;
+  }
+
+  const emps = state.employees.filter(e => e.locationId === locId);
+  if (!emps.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>No employees at this location.</p></div>';
+    return;
+  }
+
+  const shifts = getShifts(locId);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart + 'T12:00:00');
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+
+  let html = '<div class="card" style="padding:0;overflow-x:auto"><table class="data-table"><thead><tr><th>Employee</th>';
+  days.forEach(d => {
+    const dow = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    html += `<th style="text-align:center">${dow}<br><span style="font-weight:400;font-size:0.7rem">${dateStr}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  emps.forEach(emp => {
+    html += `<tr><td><strong>${esc(emp.first)} ${esc(emp.last)}</strong><br><span class="badge badge-role">${roleAbbr(emp.role)}</span> <span style="font-size:0.7rem;color:var(--text-muted)">${emp.empType === 'ft' ? 'FT' : 'PT'}</span></td>`;
+    days.forEach(d => {
+      const dateKey = d.toISOString().split('T')[0];
+      const availKey = `${emp.id}_${dateKey}`;
+      const val = state.availability[availKey]; // 'available', 'off', or undefined (default available)
+      let cellClass = '';
+      let cellText = '';
+      if (val === 'off') { cellClass = 'background:rgba(217,83,79,0.12);color:var(--red);font-weight:700;'; cellText = 'OFF'; }
+      else if (val === 'available') { cellClass = 'background:rgba(141,199,64,0.12);color:#5a8c1a;font-weight:600;'; cellText = '✓'; }
+      else { cellClass = ''; cellText = '—'; }
+      html += `<td style="text-align:center;cursor:pointer;${cellClass}" onclick="cycleAvailability('${emp.id}','${dateKey}')" title="Click to toggle">${cellText}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // Legend and summary
+  const totalSlots = emps.length * 7;
+  const offCount = days.reduce((sum, d) => {
+    const dateKey = d.toISOString().split('T')[0];
+    return sum + emps.filter(e => state.availability[`${e.id}_${dateKey}`] === 'off').length;
+  }, 0);
+
+  html += `<div style="margin-top:0.5rem;display:flex;gap:1.5rem;font-size:0.8rem;color:var(--text-muted)">
+    <span>✓ = Confirmed Available</span>
+    <span style="color:var(--red)">OFF = Time Off</span>
+    <span>— = Default (Available)</span>
+    <span style="margin-left:auto"><strong>${offCount}</strong> time-off slots this week out of ${totalSlots} total</span>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function cycleAvailability(empId, dateKey) {
+  const key = `${empId}_${dateKey}`;
+  const current = state.availability[key];
+  if (!current) {
+    state.availability[key] = 'available';
+  } else if (current === 'available') {
+    state.availability[key] = 'off';
+  } else {
+    delete state.availability[key];
+  }
+  saveState();
+  renderAvailability();
+}
+
+function getEmpAvailability(empId, dateStr) {
+  const key = `${empId}_${dateStr}`;
+  const val = state.availability[key];
+  if (val === 'off') return 'off';
+  return 'available'; // default and explicit 'available' both mean available
+}
+
+// ========== SHIFTS CONFIG ==========
+function renderShiftConfig() {
+  const c = document.getElementById('shift-config-grid');
+  if (!state.locations.length) {
+    c.innerHTML = '<div class="empty-state"><p>Add locations first.</p></div>';
+    return;
+  }
+
+  c.innerHTML = state.locations.map(loc => {
+    const shifts = getShifts(loc.id);
+    let html = `<div class="card"><h3>${esc(loc.name)}</h3>`;
+    html += '<div id="shifts-' + loc.id + '">';
+
+    shifts.forEach((s, idx) => {
+      html += `<div class="shift-config-card">
+        <div><label>Shift Name</label>
+          <input type="text" value="${esc(s.name)}" style="width:120px;margin:0"
+            onchange="updateShift('${loc.id}',${idx},'name',this.value)"></div>
+        <div><label>Start</label>
+          <select style="width:auto;margin:0" onchange="updateShift('${loc.id}',${idx},'startHour',parseInt(this.value))">
+            ${hourOptions(s.startHour)}
+          </select></div>
+        <div><label>End</label>
+          <select style="width:auto;margin:0" onchange="updateShift('${loc.id}',${idx},'endHour',parseInt(this.value))">
+            ${hourOptions(s.endHour)}
+          </select></div>
+        <div style="font-size:0.8rem;color:var(--text-muted);min-width:60px">${shiftHours(s)} hrs</div>
+        <button class="btn btn-sm btn-danger" onclick="removeShift('${loc.id}',${idx})">×</button>
+      </div>`;
+    });
+
+    html += '</div>';
+    html += `<div style="margin-top:0.75rem;display:flex;gap:0.5rem">
+      <button class="btn btn-sm btn-primary" onclick="addShift('${loc.id}')">+ Add Shift</button>
+      <button class="btn btn-sm btn-secondary" onclick="resetShifts('${loc.id}')">Reset to Defaults</button>
+    </div></div>`;
+    return html;
+  }).join('');
+}
+
+function hourOptions(selected) {
+  let html = '';
+  for (let h = 0; h < 24; h++) {
+    html += `<option value="${h}" ${h === selected ? 'selected' : ''}>${formatHour(h)}</option>`;
+  }
+  return html;
+}
+
+function updateShift(locId, idx, field, value) {
+  if (!state.shifts[locId]) state.shifts[locId] = defaultShifts();
+  if (field === 'name') {
+    // Also update the shift ID to match (slugified)
+    const oldId = state.shifts[locId][idx].id;
+    const newId = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    state.shifts[locId][idx].name = value;
+    state.shifts[locId][idx].id = newId;
+    // Migrate assignments from old shift ID to new
+    if (oldId !== newId) {
+      Object.keys(state.assignments).forEach(k => {
+        if (k.endsWith('_' + oldId)) {
+          const newKey = k.replace('_' + oldId, '_' + newId);
+          state.assignments[newKey] = state.assignments[k];
+          delete state.assignments[k];
+        }
+      });
+    }
+  } else {
+    state.shifts[locId][idx][field] = value;
+  }
+  saveState();
+  renderShiftConfig();
+}
+
+function addShift(locId) {
+  if (!state.shifts[locId]) state.shifts[locId] = defaultShifts();
+  const n = state.shifts[locId].length + 1;
+  state.shifts[locId].push({ id: 'shift_' + n, name: 'Shift ' + n, startHour: 8, endHour: 16 });
+  saveState();
+  renderShiftConfig();
+}
+
+function removeShift(locId, idx) {
+  if (!state.shifts[locId] || state.shifts[locId].length <= 1) {
+    showToast('Must have at least one shift.');
+    return;
+  }
+  const removedId = state.shifts[locId][idx].id;
+  state.shifts[locId].splice(idx, 1);
+  // Remove assignments for this shift
+  Object.keys(state.assignments).forEach(k => {
+    if (k.endsWith('_' + removedId)) delete state.assignments[k];
+  });
+  saveState();
+  renderShiftConfig();
+}
+
+function resetShifts(locId) {
+  state.shifts[locId] = defaultShifts();
+  saveState();
+  renderShiftConfig();
+  showToast('Shifts reset to defaults.');
 }
 
 // ========== WEATHER ==========
@@ -726,6 +1093,36 @@ function weatherCodeToText(c) {
   return 'Unknown';
 }
 
+// ========== LABOR COST CALCULATION ==========
+function calcDayLaborCost(locId, dateStr) {
+  const shifts = getShifts(locId);
+  let totalCost = 0;
+  const details = [];
+
+  shifts.forEach(shift => {
+    const assignKey = `${locId}_${dateStr}_${shift.id}`;
+    const assignedIds = state.assignments[assignKey] || [];
+    const hours = shiftHours(shift);
+    let shiftCost = 0;
+
+    assignedIds.forEach(empId => {
+      const emp = state.employees.find(e => e.id === empId);
+      if (!emp) return;
+      if (emp.payType === 'hourly') {
+        shiftCost += emp.rate * hours;
+      } else {
+        // Salary: daily rate = annual / 260 working days
+        shiftCost += emp.rate / 260;
+      }
+    });
+
+    totalCost += shiftCost;
+    details.push({ shift, cost: shiftCost, count: assignedIds.length });
+  });
+
+  return { totalCost, details };
+}
+
 // ========== DASHBOARD ==========
 async function refreshForecasts() {
   const days = parseInt(document.getElementById('forecast-range').value);
@@ -767,15 +1164,16 @@ function toggleLocation(id) {
 function renderForecastTables(results) {
   const container = document.getElementById('forecast-container');
   const useF = state.tempUnit === 'F';
-  let totalStaffDays = 0, peakStaff = 0, totalLaborCost = 0;
+  let totalStaffDays = 0, peakStaff = 0, grandTotalLaborCost = 0;
   let html = '';
 
   for (const { loc, data } of results) {
     const daily = data.daily;
+    const shifts = getShifts(loc.id);
     html += `<div class="card"><h3>${esc(loc.name)} — ${esc(loc.city)}, ${esc(loc.state)}</h3>`;
     html += `<div style="overflow-x:auto"><table class="data-table"><thead><tr>
       <th>Date</th><th>Day</th><th>Weather</th><th>High</th><th>Low</th>
-      <th>Rule</th><th>Staff %</th><th>Total</th><th>By Role</th><th>Assigned</th><th></th>
+      <th>Rule</th><th>Staff %</th><th>Total</th><th>By Role</th><th>Assigned</th><th>Labor Cost</th><th></th>
     </tr></thead><tbody>`;
 
     for (let i = 0; i < daily.time.length; i++) {
@@ -783,6 +1181,7 @@ function renderForecastTables(results) {
       const dow = date.toLocaleDateString('en-US', { weekday: 'short' });
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const dateISO = daily.time[i];
 
       const dayData = {
         tempHigh: daily.temperature_2m_max[i], tempLow: daily.temperature_2m_min[i],
@@ -791,9 +1190,20 @@ function renderForecastTables(results) {
         cloud: daily.cloud_cover_mean ? daily.cloud_cover_mean[i] : 50, isWeekend
       };
       const result = evaluateStaffing(dayData, loc);
-      const assignKey = `${loc.id}_${daily.time[i]}`;
-      const assigned = state.assignments[assignKey] || [];
-      const assignedCount = assigned.length;
+
+      // Count all assigned across shifts
+      let totalAssigned = 0;
+      const shiftAssignSummary = [];
+      shifts.forEach(s => {
+        const key = `${loc.id}_${dateISO}_${s.id}`;
+        const count = (state.assignments[key] || []).length;
+        totalAssigned += count;
+        if (count > 0) shiftAssignSummary.push(`${s.name}: ${count}`);
+      });
+
+      // Labor cost
+      const laborInfo = calcDayLaborCost(loc.id, dateISO);
+      grandTotalLaborCost += laborInfo.totalCost;
 
       totalStaffDays += result.staff;
       if (result.staff > peakStaff) peakStaff = result.staff;
@@ -808,9 +1218,21 @@ function renderForecastTables(results) {
         return count ? `<span title="${r.name}"><span class="role-dot role-dot-${r.id}"></span>${count} ${r.abbr}</span>` : '';
       }).filter(Boolean).join('&nbsp;&nbsp;');
 
-      const assignBadge = assignedCount > 0
-        ? `<span class="badge badge-ft">${assignedCount} assigned</span>`
-        : `<span class="badge" style="background:#f0f0f0;color:#999">unassigned</span>`;
+      let assignBadge;
+      if (totalAssigned > 0) {
+        const shiftDetail = shiftAssignSummary.join(', ');
+        assignBadge = `<span class="badge badge-ft" title="${esc(shiftDetail)}">${totalAssigned} assigned</span>`;
+        if (shiftAssignSummary.length > 0) {
+          assignBadge += `<div class="shift-breakdown">${shiftAssignSummary.map(s => `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s)}</span>`).join('<br>')}</div>`;
+        }
+      } else {
+        assignBadge = `<span class="badge" style="background:#f0f0f0;color:#999">unassigned</span>`;
+      }
+
+      const costClass = laborInfo.totalCost > 2000 ? 'labor-cost high' : 'labor-cost';
+      const costHtml = laborInfo.totalCost > 0
+        ? `<span class="${costClass}">$${laborInfo.totalCost.toFixed(0)}</span>`
+        : `<span style="color:var(--text-muted);font-size:0.8rem">—</span>`;
 
       html += `<tr style="${rowBg}">
         <td>${dateStr}</td>
@@ -822,7 +1244,8 @@ function renderForecastTables(results) {
         <td><span class="staff-count">${result.staff}</span></td>
         <td><div class="role-breakdown">${roleHtml}</div></td>
         <td>${assignBadge}</td>
-        <td><button class="btn btn-sm btn-outline" onclick="openAssignModal('${assignKey}','${loc.id}','${dateStr} ${dow}')">Assign</button></td>
+        <td>${costHtml}</td>
+        <td><button class="btn btn-sm btn-outline" onclick="openAssignModal('${loc.id}','${dateISO}','${dateStr} ${dow}')">Assign</button></td>
       </tr>`;
     }
     html += '</tbody></table></div></div>';
@@ -833,50 +1256,115 @@ function renderForecastTables(results) {
     <div class="summary-stat"><div class="value">${totalStaffDays}</div><div class="label">Total Staff-Days</div></div>
     <div class="summary-stat"><div class="value">${peakStaff}</div><div class="label">Peak Day Staff</div></div>
     <div class="summary-stat"><div class="value">${state.employees.length}</div><div class="label">Total Employees</div></div>
+    <div class="summary-stat cost-stat"><div class="value">$${grandTotalLaborCost.toFixed(0)}</div><div class="label">Est. Labor Cost</div></div>
   `;
   container.innerHTML = html;
   document.getElementById('export-actions').style.display = 'flex';
 }
 
 // ========== ASSIGNMENT MODAL ==========
-function openAssignModal(assignKey, locId, dateLabel) {
-  currentAssignKey = assignKey;
+function openAssignModal(locId, dateISO, dateLabel) {
+  currentAssignLocId = locId;
+  currentAssignDate = dateISO;
   document.getElementById('assign-modal-title').textContent = `Assign Employees — ${dateLabel}`;
   const locEmps = state.employees.filter(e => e.locationId === locId);
-  const assigned = state.assignments[assignKey] || [];
+  const shifts = getShifts(locId);
 
   if (!locEmps.length) {
     document.getElementById('assign-modal-body').innerHTML = '<p style="color:var(--text-muted)">No employees at this location. Add some in the Employees tab.</p>';
+    document.getElementById('assign-modal-cost').style.display = 'none';
   } else {
-    const grouped = {};
-    ROLES.forEach(r => { grouped[r.id] = locEmps.filter(e => e.role === r.id); });
-
     let html = '';
-    ROLES.forEach(r => {
-      if (!grouped[r.id].length) return;
-      html += `<div style="margin-bottom:0.75rem"><strong style="color:${r.color}">${r.name}s</strong>`;
-      grouped[r.id].forEach(e => {
-        const checked = assigned.includes(e.id) ? 'checked' : '';
-        html += `<div class="assign-check">
-          <input type="checkbox" id="assign-${e.id}" value="${e.id}" ${checked}>
-          <label for="assign-${e.id}">${esc(e.first)} ${esc(e.last)}
-            <span class="emp-meta">${e.empType === 'ft' ? 'FT' : 'PT'} · ${e.payType === 'hourly' ? '$'+e.rate.toFixed(2)+'/hr' : 'Salary'}</span>
-          </label>
-        </div>`;
+
+    shifts.forEach(shift => {
+      const assignKey = `${locId}_${dateISO}_${shift.id}`;
+      const assigned = state.assignments[assignKey] || [];
+      const hours = shiftHours(shift);
+
+      html += `<div class="shift-section">
+        <div class="shift-header">
+          <span>${esc(shift.name)}</span>
+          <span class="shift-time">${formatHour(shift.startHour)} – ${formatHour(shift.endHour)} (${hours}h)</span>
+        </div>
+        <div class="shift-body">`;
+
+      const grouped = {};
+      ROLES.forEach(r => { grouped[r.id] = locEmps.filter(e => e.role === r.id); });
+
+      ROLES.forEach(r => {
+        if (!grouped[r.id].length) return;
+        html += `<div style="margin-bottom:0.5rem"><strong style="color:${r.color};font-size:0.8rem">${r.name}s</strong>`;
+        grouped[r.id].forEach(e => {
+          const checked = assigned.includes(e.id) ? 'checked' : '';
+          const avail = getEmpAvailability(e.id, dateISO);
+          const availIcon = avail === 'off'
+            ? '<span class="avail-indicator" style="color:var(--red)" title="Marked as OFF">⛔</span>'
+            : '';
+          const costInfo = e.payType === 'hourly'
+            ? `$${(e.rate * hours).toFixed(2)}`
+            : `$${(e.rate / 260).toFixed(2)}/day`;
+
+          html += `<div class="assign-check ${avail === 'off' ? 'opacity:0.5' : ''}">
+            <input type="checkbox" id="assign-${shift.id}-${e.id}" data-shift="${shift.id}" data-emp="${e.id}" value="${e.id}" ${checked}
+              onchange="updateModalCost()">
+            <label for="assign-${shift.id}-${e.id}">${esc(e.first)} ${esc(e.last)} ${availIcon}
+              <span class="emp-meta">${e.empType === 'ft' ? 'FT' : 'PT'} · ${e.payType === 'hourly' ? '$'+e.rate.toFixed(2)+'/hr' : 'Salary'} · ${costInfo}</span>
+            </label>
+          </div>`;
+        });
+        html += '</div>';
       });
-      html += '</div>';
+
+      html += '</div></div>';
     });
+
     document.getElementById('assign-modal-body').innerHTML = html;
+    document.getElementById('assign-modal-cost').style.display = 'block';
+    updateModalCost();
   }
   document.getElementById('assign-modal').classList.add('show');
 }
 
-function closeAssignModal() { document.getElementById('assign-modal').classList.remove('show'); currentAssignKey = null; }
+function updateModalCost() {
+  if (!currentAssignLocId || !currentAssignDate) return;
+  const shifts = getShifts(currentAssignLocId);
+  let totalCost = 0;
+
+  shifts.forEach(shift => {
+    const hours = shiftHours(shift);
+    const checks = document.querySelectorAll(`#assign-modal-body input[data-shift="${shift.id}"]:checked`);
+    checks.forEach(chk => {
+      const emp = state.employees.find(e => e.id === chk.value);
+      if (!emp) return;
+      if (emp.payType === 'hourly') {
+        totalCost += emp.rate * hours;
+      } else {
+        totalCost += emp.rate / 260;
+      }
+    });
+  });
+
+  const costEl = document.getElementById('assign-modal-cost-value');
+  costEl.textContent = '$' + totalCost.toFixed(2);
+  costEl.className = totalCost > 2000 ? 'labor-cost high' : 'labor-cost';
+}
+
+function closeAssignModal() {
+  document.getElementById('assign-modal').classList.remove('show');
+  currentAssignLocId = null;
+  currentAssignDate = null;
+}
 
 function saveAssignments() {
-  if (!currentAssignKey) return;
-  const checks = document.querySelectorAll('#assign-modal-body input[type="checkbox"]:checked');
-  state.assignments[currentAssignKey] = [...checks].map(c => c.value);
+  if (!currentAssignLocId || !currentAssignDate) return;
+  const shifts = getShifts(currentAssignLocId);
+
+  shifts.forEach(shift => {
+    const assignKey = `${currentAssignLocId}_${currentAssignDate}_${shift.id}`;
+    const checks = document.querySelectorAll(`#assign-modal-body input[data-shift="${shift.id}"]:checked`);
+    state.assignments[assignKey] = [...checks].map(c => c.value);
+  });
+
   saveState();
   closeAssignModal();
   // Re-render
@@ -961,19 +1449,31 @@ function updateRoleScaling(locId, roleId, field, val) {
 function exportCSV() {
   const active = state.locations.filter(l => state.activeLocations.includes(l.id) && forecastCache[l.id]);
   if (!active.length) { showToast('No forecast data.'); return; }
-  let csv = 'Location,City,State,Date,Day,Weather,High_F,Low_F,Rule,Staff_Pct,Total_Staff,GM,AM,MOD,WashTech,Assigned_Names\n';
+  let csv = 'Location,City,State,Date,Day,Weather,High_F,Low_F,Rule,Staff_Pct,Total_Staff,GM,AM,MOD,WashTech,Assigned_Total,Labor_Cost,Shift_Details\n';
   for (const loc of active) {
     const daily = forecastCache[loc.id].daily;
+    const shifts = getShifts(loc.id);
     for (let i = 0; i < daily.time.length; i++) {
       const date = new Date(daily.time[i] + 'T12:00:00');
       const dow = date.toLocaleDateString('en-US', { weekday: 'short' });
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const dayData = { tempHigh: daily.temperature_2m_max[i], tempLow: daily.temperature_2m_min[i], precip: daily.precipitation_sum[i], snow: daily.snowfall_sum[i], weatherCode: daily.weathercode[i], wind: daily.windspeed_10m_max[i], cloud: daily.cloud_cover_mean?daily.cloud_cover_mean[i]:50, isWeekend };
       const result = evaluateStaffing(dayData, loc);
-      const assignKey = `${loc.id}_${daily.time[i]}`;
-      const assignedIds = state.assignments[assignKey] || [];
-      const assignedNames = assignedIds.map(id => { const e = state.employees.find(x => x.id === id); return e ? `${e.first} ${e.last}` : ''; }).filter(Boolean).join('; ');
-      csv += `"${loc.name}","${loc.city}","${loc.state}",${daily.time[i]},${dow},"${weatherCodeToText(dayData.weatherCode)}",${Math.round(dayData.tempHigh)},${Math.round(dayData.tempLow)},"${result.rule.name}",${result.pct},${result.staff},${result.roleBreakdown.gm||0},${result.roleBreakdown.am||0},${result.roleBreakdown.mod||0},${result.roleBreakdown.wt||0},"${assignedNames}"\n`;
+      const dateISO = daily.time[i];
+
+      let totalAssigned = 0;
+      const shiftDetails = [];
+      shifts.forEach(s => {
+        const key = `${loc.id}_${dateISO}_${s.id}`;
+        const assignedIds = state.assignments[key] || [];
+        totalAssigned += assignedIds.length;
+        const names = assignedIds.map(id => { const e = state.employees.find(x => x.id === id); return e ? `${e.first} ${e.last}` : ''; }).filter(Boolean).join('+');
+        if (names) shiftDetails.push(`${s.name}:${names}`);
+      });
+
+      const laborInfo = calcDayLaborCost(loc.id, dateISO);
+
+      csv += `"${loc.name}","${loc.city}","${loc.state}",${dateISO},${dow},"${weatherCodeToText(dayData.weatherCode)}",${Math.round(dayData.tempHigh)},${Math.round(dayData.tempLow)},"${result.rule.name}",${result.pct},${result.staff},${result.roleBreakdown.gm||0},${result.roleBreakdown.am||0},${result.roleBreakdown.mod||0},${result.roleBreakdown.wt||0},${totalAssigned},${laborInfo.totalCost.toFixed(2)},"${shiftDetails.join('; ')}"\n`;
     }
   }
   downloadFile('cheetah_clean_staffing.csv', csv, 'text/csv');
@@ -1005,10 +1505,6 @@ populateStates();
 populateEmpLocSelect();
 renderDashboard();
 renderLocations();
-
-// Re-populate employee location select when locations change
-const origAddLoc = addLocation;
-const origDelLoc = deleteLocation;
 </script>
 </body>
 </html>
