@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cheetah Clean Car Wash — Staff Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Rubik:ital,wght@0,400;0,500;0,700;0,900;1,700;1,900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FCB040;
+    --primary-dark: #e89a2a;
+    --blue-deep: #2C388F;
+    --blue-sky: #28A9E1;
+    --green: #8DC740;
+    --green-dark: #7ab536;
+    --bg: #f4f4f4;
+    --surface: #ffffff;
+    --surface-2: #e8e8e8;
+    --text: #333333;
+    --text-muted: #898989;
+    --red: #d9534f;
+    --blue: #28A9E1;
+    --cyan: #28A9E1;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: #1a1a1b;
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .logo-icon {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon img {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .logo h1 {
+    line-height: 1.1;
+  }
+
+  .logo h1 .brand-cheetah {
+    font-family: 'Rubik', sans-serif;
+    font-style: italic;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+  }
+
+  .logo h1 .brand-clean {
+    font-family: 'Dancing Script', cursive;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: white;
+    display: block;
+    margin-top: -2px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+  }
+
+  .logo h1 .brand-sub {
+    font-family: 'Rubik', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: block;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  }
+
+  header nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  header nav button {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  header nav button:hover { background: rgba(255,255,255,0.35); }
+  header nav button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    font-weight: 700;
+  }
+
+  main { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  h2 {
+    font-family: 'Rubik', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    color: var(--blue-deep);
+    text-transform: uppercase;
+  }
+
+  h3 {
+    font-family: 'Rubik', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--blue-deep);
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  label {
+    display: block;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--surface-2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--blue-sky);
+    box-shadow: 0 0 0 3px rgba(40,169,225,0.15);
+  }
+
+  .btn {
+    padding: 0.55rem 1.5rem;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(252,176,64,0.35); }
+  .btn-secondary { background: var(--green); color: white; }
+  .btn-secondary:hover { background: var(--green-dark); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { opacity: 0.85; }
+  .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.75rem; }
+
+  .location-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .location-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid var(--blue-sky);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .location-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+  .location-card.selected { border-left-color: var(--green); background: #f0f8e8; }
+
+  .location-card h3 { margin-bottom: 0.25rem; }
+  .location-card .meta { font-size: 0.8rem; color: var(--text-muted); }
+
+  .forecast-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .forecast-table th {
+    background: var(--blue-deep);
+    color: white;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+  }
+
+  .forecast-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--surface-2);
+    white-space: nowrap;
+  }
+
+  .forecast-table tr:hover td { background: rgba(40,169,225,0.06); }
+
+  .weather-icon { font-size: 1.2rem; }
+
+  .staff-level {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  .staff-full { background: rgba(141,199,64,0.2); color: #5a8c1a; }
+  .staff-high { background: rgba(40,169,225,0.15); color: #1a7ab0; }
+  .staff-medium { background: rgba(252,176,64,0.2); color: #b87a1a; }
+  .staff-low { background: rgba(217,83,79,0.15); color: var(--red); }
+
+  .staff-count {
+    font-family: 'Rubik', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 40px;
+    display: inline-block;
+    color: var(--blue-deep);
+  }
+
+  .summary-bar {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-stat {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    min-width: 140px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 3px solid var(--blue-sky);
+  }
+
+  .summary-stat .value {
+    font-family: 'Rubik', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--blue-deep);
+  }
+
+  .summary-stat .label {
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .toolbar select {
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .override-input {
+    width: 60px;
+    padding: 0.3rem 0.4rem;
+    margin-bottom: 0;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .day-of-week { color: var(--text-muted); font-size: 0.75rem; }
+
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .rule-card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--surface-2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .rule-card h4 {
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--blue-deep);
+  }
+
+  .inline-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .inline-group input, .inline-group select {
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-sun { background: rgba(252,176,64,0.2); color: #b87a1a; }
+  .badge-rain { background: rgba(40,169,225,0.15); color: #1a7ab0; }
+  .badge-cold { background: rgba(44,56,143,0.12); color: var(--blue-deep); }
+  .badge-weekend { background: rgba(141,199,64,0.2); color: #5a8c1a; }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--green);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 20px;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+  }
+
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--surface-2);
+    border-top-color: var(--blue-sky);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .export-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
+
+  .note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  .temp-unit-toggle {
+    display: flex;
+    gap: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 2px solid var(--blue-deep);
+  }
+
+  .temp-unit-toggle button {
+    padding: 0.35rem 0.75rem;
+    background: white;
+    color: var(--blue-deep);
+    border: none;
+    cursor: pointer;
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .temp-unit-toggle button.active {
+    background: var(--blue-deep);
+    color: white;
+    font-weight: 700;
+  }
+
+  .multi-select-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .multi-select-bar .loc-chip {
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    background: white;
+    color: var(--text-muted);
+    font-family: 'Rubik', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid var(--surface-2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .multi-select-bar .loc-chip.active {
+    background: rgba(40,169,225,0.1);
+    color: var(--blue-deep);
+    border-color: var(--blue-sky);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon"><img src="https://cheetahclean.com/wp-content/uploads/2024/09/CheetahCleanLogo.png" alt="Cheetah Clean Logo"></div>
+    <h1><span class="brand-sub">Staff Scheduler</span></h1>
+  </div>
+  <nav>
+    <button class="active" data-tab="dashboard">Dashboard</button>
+    <button data-tab="locations">Locations</button>
+    <button data-tab="rules">Staffing Rules</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="section active">
+    <div class="toolbar">
+      <h2 style="margin-bottom:0">Staffing Forecast</h2>
+      <div style="flex:1"></div>
+      <div class="temp-unit-toggle">
+        <button class="active" data-unit="F">°F</button>
+        <button data-unit="C">°C</button>
+      </div>
+      <select id="forecast-range" style="width:auto;margin-bottom:0">
+        <option value="7">7 Days</option>
+        <option value="14" selected>14 Days</option>
+        <option value="16">16 Days (Max)</option>
+      </select>
+      <button class="btn btn-primary" onclick="refreshForecasts()">Refresh Forecast</button>
+    </div>
+
+    <div class="multi-select-bar" id="location-chips"></div>
+
+    <div class="summary-bar" id="summary-bar"></div>
+
+    <div id="forecast-container">
+      <div class="empty-state">
+        <div class="icon">📍</div>
+        <p>Add locations to see weather-based staffing projections.</p>
+        <br>
+        <button class="btn btn-primary" onclick="switchTab('locations')">Add Your First Location</button>
+      </div>
+    </div>
+
+    <div class="export-actions" id="export-actions" style="display:none">
+      <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-primary" onclick="printView()">Print View</button>
+    </div>
+  </section>
+
+  <!-- LOCATIONS -->
+  <section id="locations" class="section">
+    <h2>Manage Locations</h2>
+    <div class="card">
+      <h3>Add New Location</h3>
+      <div class="grid-3">
+        <div>
+          <label>Location Name</label>
+          <input type="text" id="loc-name" placeholder="e.g., Cheetah Clean — Midvale">
+        </div>
+        <div>
+          <label>City</label>
+          <input type="text" id="loc-city" placeholder="e.g., Midvale">
+        </div>
+        <div>
+          <label>State</label>
+          <select id="loc-state">
+            <option value="">Select state...</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div>
+          <label>ZIP Code</label>
+          <input type="text" id="loc-zip" placeholder="e.g., 84047" maxlength="5">
+        </div>
+        <div>
+          <label>Base Staff (Full Crew Size)</label>
+          <input type="number" id="loc-base-staff" placeholder="e.g., 8" min="1" max="100">
+        </div>
+        <div>
+          <label>Min Staff (Skeleton Crew)</label>
+          <input type="number" id="loc-min-staff" placeholder="e.g., 3" min="1" max="50">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addLocation()">Add Location</button>
+    </div>
+
+    <h3>Your Locations</h3>
+    <div class="location-list" id="location-list">
+      <div class="empty-state">
+        <div class="icon">🏗️</div>
+        <p>No locations yet. Add your first one above.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAFFING RULES -->
+  <section id="rules" class="section">
+    <h2>Staffing Rules</h2>
+    <p class="note" style="margin-bottom:1rem;font-style:normal;color:var(--text-muted)">
+      These rules determine staffing levels as a percentage of each location's base staff count.
+      Rules are evaluated in priority order — the first matching rule wins.
+    </p>
+
+    <div class="rules-grid" id="rules-grid"></div>
+
+    <div style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="resetRulesToDefault()">Reset to Defaults</button>
+      <button class="btn btn-primary" onclick="saveRules()" style="margin-left:0.5rem">Save Rules</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="section">
+    <h2>Settings</h2>
+    <div class="card">
+      <h3>Data Management</h3>
+      <p class="note" style="margin-bottom:1rem;font-style:normal">
+        All data is stored locally in your browser. Export to back up or transfer to another device.
+      </p>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="exportData()">Export All Data</button>
+        <button class="btn btn-primary" onclick="document.getElementById('import-file').click()">Import Data</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>About</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">
+        Cheetah Clean Staff Scheduler v1.0<br>
+        Weather data powered by <a href="https://open-meteo.com/" target="_blank" style="color:var(--blue-sky)">Open-Meteo</a> (free, no API key required).<br>
+        Forecast range: up to 16 days. Data refreshes on demand.
+      </p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- STATE ----
+const STORAGE_KEY = 'cheetah_clean_scheduler';
+
+let state = loadState();
+
+function defaultState() {
+  return {
+    locations: [],
+    rules: defaultRules(),
+    tempUnit: 'F',
+    forecastDays: 14,
+    overrides: {},
+    activeLocations: []
+  };
+}
+
+function defaultRules() {
+  return [
+    { id: 'rain_heavy', name: 'Heavy Rain / Storm', icon: '⛈️', badge: 'rain',
+      condition: { precip_min: 0.5 }, staffPct: 30, enabled: true, priority: 1 },
+    { id: 'rain_light', name: 'Light Rain / Drizzle', icon: '🌧️', badge: 'rain',
+      condition: { precip_min: 0.05, precip_max: 0.5 }, staffPct: 50, enabled: true, priority: 2 },
+    { id: 'snow', name: 'Snow', icon: '❄️', badge: 'cold',
+      condition: { snow_min: 0.1 }, staffPct: 35, enabled: true, priority: 3 },
+    { id: 'freezing', name: 'Freezing (Below 32°F)', icon: '🥶', badge: 'cold',
+      condition: { temp_max_f: 32 }, staffPct: 40, enabled: true, priority: 4 },
+    { id: 'cold', name: 'Cold (32–50°F)', icon: '🌡️', badge: 'cold',
+      condition: { temp_min_f: 32, temp_max_f_upper: 50 }, staffPct: 60, enabled: true, priority: 5 },
+    { id: 'overcast', name: 'Overcast / Cloudy', icon: '☁️', badge: 'rain',
+      condition: { cloud_min: 80, precip_max: 0.05 }, staffPct: 70, enabled: true, priority: 6 },
+    { id: 'hot', name: 'Hot Day (90°F+)', icon: '🔥', badge: 'sun',
+      condition: { temp_min_f_lower: 90 }, staffPct: 110, enabled: true, priority: 7 },
+    { id: 'sunny_warm', name: 'Sunny & Warm (65–89°F)', icon: '☀️', badge: 'sun',
+      condition: { temp_min_f_lower: 65, temp_max_f_upper: 90, cloud_max: 40 }, staffPct: 100, enabled: true, priority: 8 },
+    { id: 'weekend_boost', name: 'Weekend Boost', icon: '📅', badge: 'weekend',
+      condition: { is_weekend: true }, staffPct: 115, enabled: true, priority: 100,
+      modifier: true },
+    { id: 'default', name: 'Default / Mild', icon: '🌤️', badge: 'sun',
+      condition: {}, staffPct: 80, enabled: true, priority: 99 }
+  ];
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!parsed.rules || parsed.rules.length === 0) parsed.rules = defaultRules();
+      if (!parsed.overrides) parsed.overrides = {};
+      if (!parsed.activeLocations) parsed.activeLocations = [];
+      return parsed;
+    }
+  } catch(e) {}
+  return defaultState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ---- US STATES ----
+const US_STATES = [
+  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
+  'VA','WA','WV','WI','WY'
+];
+
+// ---- NAVIGATION ----
+document.querySelectorAll('header nav button').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('header nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === tab));
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'locations') renderLocations();
+  if (tab === 'rules') renderRules();
+}
+
+// ---- TOAST ----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---- LOCATIONS ----
+function populateStates() {
+  const sel = document.getElementById('loc-state');
+  US_STATES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+}
+
+async function geocodeZip(zip) {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${zip}&count=1&language=en&format=json&country=US`;
+  try {
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.results && data.results.length > 0) {
+      return { lat: data.results[0].latitude, lon: data.results[0].longitude };
+    }
+  } catch(e) {}
+  const fallbackUrl = `https://api.zippopotam.us/us/${zip}`;
+  try {
+    const resp = await fetch(fallbackUrl);
+    if (resp.ok) {
+      const data = await resp.json();
+      return { lat: parseFloat(data.places[0].latitude), lon: parseFloat(data.places[0].longitude) };
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function addLocation() {
+  const name = document.getElementById('loc-name').value.trim();
+  const city = document.getElementById('loc-city').value.trim();
+  const st = document.getElementById('loc-state').value;
+  const zip = document.getElementById('loc-zip').value.trim();
+  const baseStaff = parseInt(document.getElementById('loc-base-staff').value) || 8;
+  const minStaff = parseInt(document.getElementById('loc-min-staff').value) || 3;
+
+  if (!name || !city || !st || !zip) {
+    showToast('Please fill in all location fields.');
+    return;
+  }
+
+  showToast('Geocoding ZIP...');
+  const coords = await geocodeZip(zip);
+  if (!coords) {
+    showToast('Could not find coordinates for that ZIP. Check and retry.');
+    return;
+  }
+
+  const loc = {
+    id: Date.now().toString(36),
+    name, city, state: st, zip,
+    lat: coords.lat, lon: coords.lon,
+    baseStaff, minStaff
+  };
+
+  state.locations.push(loc);
+  state.activeLocations.push(loc.id);
+  saveState();
+
+  document.getElementById('loc-name').value = '';
+  document.getElementById('loc-city').value = '';
+  document.getElementById('loc-state').value = '';
+  document.getElementById('loc-zip').value = '';
+  document.getElementById('loc-base-staff').value = '';
+  document.getElementById('loc-min-staff').value = '';
+
+  showToast(`${name} added!`);
+  renderLocations();
+}
+
+function deleteLocation(id) {
+  if (!confirm('Remove this location?')) return;
+  state.locations = state.locations.filter(l => l.id !== id);
+  state.activeLocations = state.activeLocations.filter(a => a !== id);
+  delete state.overrides[id];
+  saveState();
+  renderLocations();
+}
+
+function renderLocations() {
+  const container = document.getElementById('location-list');
+  if (state.locations.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🏗️</div><p>No locations yet. Add your first one above.</p></div>';
+    return;
+  }
+  container.innerHTML = state.locations.map(loc => `
+    <div class="location-card">
+      <h3>${esc(loc.name)}</h3>
+      <div class="meta">${esc(loc.city)}, ${esc(loc.state)} ${esc(loc.zip)}</div>
+      <div class="meta">Coords: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}</div>
+      <div class="meta">Base staff: ${loc.baseStaff} | Min staff: ${loc.minStaff}</div>
+      <div style="margin-top:0.5rem">
+        <button class="btn btn-sm btn-danger" onclick="deleteLocation('${loc.id}')">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---- WEATHER API ----
+async function fetchForecast(loc, days) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}` +
+    `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,weathercode,windspeed_10m_max,cloud_cover_mean` +
+    `&temperature_unit=fahrenheit&precipitation_unit=inch&windspeed_unit=mph` +
+    `&timezone=auto&forecast_days=${Math.min(days, 16)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Weather API error: ${resp.status}`);
+  return resp.json();
+}
+
+// ---- STAFFING ENGINE ----
+function evaluateStaffing(dayData, loc) {
+  const rules = state.rules.filter(r => r.enabled && !r.modifier).sort((a,b) => a.priority - b.priority);
+  const modifiers = state.rules.filter(r => r.enabled && r.modifier);
+
+  let matchedRule = null;
+
+  for (const rule of rules) {
+    if (matchesCondition(rule.condition, dayData)) {
+      matchedRule = rule;
+      break;
+    }
+  }
+
+  if (!matchedRule) matchedRule = { staffPct: 80, name: 'Default', icon: '🌤️' };
+
+  let pct = matchedRule.staffPct;
+
+  for (const mod of modifiers) {
+    if (matchesCondition(mod.condition, dayData)) {
+      pct = Math.round(pct * mod.staffPct / 100);
+    }
+  }
+
+  let staff = Math.round(loc.baseStaff * pct / 100);
+  staff = Math.max(loc.minStaff, Math.min(loc.baseStaff * 1.5, staff));
+
+  return { staff: Math.round(staff), pct, rule: matchedRule };
+}
+
+function matchesCondition(cond, day) {
+  if (cond.precip_min !== undefined && day.precip < cond.precip_min) return false;
+  if (cond.precip_max !== undefined && day.precip >= cond.precip_max) return false;
+  if (cond.snow_min !== undefined && day.snow < cond.snow_min) return false;
+  if (cond.temp_max_f !== undefined && day.tempHigh > cond.temp_max_f) return false;
+  if (cond.temp_min_f !== undefined && day.tempHigh < cond.temp_min_f) return false;
+  if (cond.temp_max_f_upper !== undefined && day.tempHigh >= cond.temp_max_f_upper) return false;
+  if (cond.temp_min_f_lower !== undefined && day.tempHigh < cond.temp_min_f_lower) return false;
+  if (cond.cloud_min !== undefined && day.cloud < cond.cloud_min) return false;
+  if (cond.cloud_max !== undefined && day.cloud > cond.cloud_max) return false;
+  if (cond.is_weekend !== undefined && cond.is_weekend !== day.isWeekend) return false;
+  return true;
+}
+
+function weatherCodeToIcon(code) {
+  if (code <= 1) return '☀️';
+  if (code <= 3) return '⛅';
+  if (code <= 48) return '☁️';
+  if (code <= 57) return '🌧️';
+  if (code <= 65) return '🌧️';
+  if (code <= 67) return '🌧️';
+  if (code <= 77) return '❄️';
+  if (code <= 82) return '🌧️';
+  if (code <= 86) return '❄️';
+  if (code <= 99) return '⛈️';
+  return '🌤️';
+}
+
+function weatherCodeToText(code) {
+  if (code === 0) return 'Clear';
+  if (code === 1) return 'Mostly Clear';
+  if (code === 2) return 'Partly Cloudy';
+  if (code === 3) return 'Overcast';
+  if (code <= 48) return 'Foggy';
+  if (code <= 55) return 'Drizzle';
+  if (code <= 57) return 'Freezing Drizzle';
+  if (code <= 65) return 'Rain';
+  if (code <= 67) return 'Freezing Rain';
+  if (code <= 75) return 'Snow';
+  if (code === 77) return 'Snow Grains';
+  if (code <= 82) return 'Rain Showers';
+  if (code <= 86) return 'Snow Showers';
+  if (code === 95) return 'Thunderstorm';
+  if (code <= 99) return 'T-storm w/ Hail';
+  return 'Unknown';
+}
+
+// ---- DASHBOARD ----
+let forecastCache = {};
+
+async function refreshForecasts() {
+  const days = parseInt(document.getElementById('forecast-range').value);
+  state.forecastDays = days;
+  saveState();
+
+  const active = state.locations.filter(l => state.activeLocations.includes(l.id));
+  if (active.length === 0) {
+    showToast('Select at least one location.');
+    return;
+  }
+
+  const container = document.getElementById('forecast-container');
+  container.innerHTML = '<div class="loading">Fetching weather forecasts</div>';
+
+  try {
+    const results = await Promise.all(active.map(async loc => {
+      const data = await fetchForecast(loc, days);
+      forecastCache[loc.id] = data;
+      return { loc, data };
+    }));
+    renderForecastTables(results);
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state"><p>Error fetching forecasts: ${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderDashboard() {
+  renderLocationChips();
+  if (state.locations.length === 0) return;
+
+  const active = state.locations.filter(l => state.activeLocations.includes(l.id));
+  if (active.length > 0 && Object.keys(forecastCache).length > 0) {
+    const results = active.filter(l => forecastCache[l.id]).map(l => ({ loc: l, data: forecastCache[l.id] }));
+    if (results.length > 0) renderForecastTables(results);
+  }
+}
+
+function renderLocationChips() {
+  const container = document.getElementById('location-chips');
+  if (state.locations.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = state.locations.map(loc => {
+    const active = state.activeLocations.includes(loc.id);
+    return `<span class="loc-chip ${active ? 'active' : ''}" onclick="toggleLocation('${loc.id}')">${esc(loc.name)}</span>`;
+  }).join('');
+}
+
+function toggleLocation(id) {
+  const idx = state.activeLocations.indexOf(id);
+  if (idx >= 0) state.activeLocations.splice(idx, 1);
+  else state.activeLocations.push(id);
+  saveState();
+  renderLocationChips();
+}
+
+function renderForecastTables(results) {
+  const container = document.getElementById('forecast-container');
+  const useFahrenheit = state.tempUnit === 'F';
+
+  let totalStaffDays = 0;
+  let peakStaff = 0;
+  let minDay = null;
+
+  let html = '';
+
+  for (const { loc, data } of results) {
+    const daily = data.daily;
+    const days = daily.time.length;
+
+    html += `<div class="card"><h3>${esc(loc.name)} — ${esc(loc.city)}, ${esc(loc.state)}</h3>`;
+    html += `<div style="overflow-x:auto"><table class="forecast-table"><thead><tr>
+      <th>Date</th><th>Day</th><th>Weather</th><th>High</th><th>Low</th>
+      <th>Precip</th><th>Snow</th><th>Wind</th><th>Cloud</th>
+      <th>Rule</th><th>Staff %</th><th>Projected Staff</th><th>Override</th>
+    </tr></thead><tbody>`;
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(daily.time[i] + 'T12:00:00');
+      const dow = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      const dayData = {
+        tempHigh: daily.temperature_2m_max[i],
+        tempLow: daily.temperature_2m_min[i],
+        precip: daily.precipitation_sum[i],
+        snow: daily.snowfall_sum[i],
+        weatherCode: daily.weathercode[i],
+        wind: daily.windspeed_10m_max[i],
+        cloud: daily.cloud_cover_mean ? daily.cloud_cover_mean[i] : 50,
+        isWeekend
+      };
+
+      const result = evaluateStaffing(dayData, loc);
+
+      const overrideKey = `${loc.id}_${daily.time[i]}`;
+      const override = state.overrides[overrideKey];
+      const finalStaff = override !== undefined ? override : result.staff;
+
+      totalStaffDays += finalStaff;
+      if (finalStaff > peakStaff) peakStaff = finalStaff;
+
+      const tempH = useFahrenheit ? `${Math.round(dayData.tempHigh)}°F` : `${Math.round((dayData.tempHigh - 32) * 5/9)}°C`;
+      const tempL = useFahrenheit ? `${Math.round(dayData.tempLow)}°F` : `${Math.round((dayData.tempLow - 32) * 5/9)}°C`;
+
+      const levelClass = result.pct >= 100 ? 'staff-full' : result.pct >= 70 ? 'staff-high' : result.pct >= 50 ? 'staff-medium' : 'staff-low';
+
+      const rowBg = isWeekend ? 'background:rgba(168,85,247,0.04);' : '';
+
+      html += `<tr style="${rowBg}">
+        <td>${dateStr}</td>
+        <td class="day-of-week">${dow}</td>
+        <td><span class="weather-icon">${weatherCodeToIcon(dayData.weatherCode)}</span> ${weatherCodeToText(dayData.weatherCode)}</td>
+        <td>${tempH}</td>
+        <td>${tempL}</td>
+        <td>${dayData.precip.toFixed(2)}"</td>
+        <td>${dayData.snow > 0 ? dayData.snow.toFixed(1) + '"' : '—'}</td>
+        <td>${Math.round(dayData.wind)} mph</td>
+        <td>${Math.round(dayData.cloud)}%</td>
+        <td><span class="weather-icon">${result.rule.icon}</span> ${esc(result.rule.name)}</td>
+        <td><span class="staff-level ${levelClass}">${result.pct}%</span></td>
+        <td><span class="staff-count">${finalStaff}</span></td>
+        <td><input type="number" class="override-input" value="${override !== undefined ? override : ''}"
+            placeholder="${result.staff}" min="${loc.minStaff}" max="${Math.round(loc.baseStaff*1.5)}"
+            onchange="setOverride('${overrideKey}', this.value, ${result.staff})"></td>
+      </tr>`;
+    }
+
+    html += '</tbody></table></div></div>';
+  }
+
+  const summaryBar = document.getElementById('summary-bar');
+  summaryBar.innerHTML = `
+    <div class="summary-stat"><div class="value">${results.length}</div><div class="label">Locations</div></div>
+    <div class="summary-stat"><div class="value">${totalStaffDays}</div><div class="label">Total Staff-Days</div></div>
+    <div class="summary-stat"><div class="value">${peakStaff}</div><div class="label">Peak Day Staff</div></div>
+  `;
+
+  container.innerHTML = html;
+  document.getElementById('export-actions').style.display = 'flex';
+}
+
+function setOverride(key, val, defaultVal) {
+  if (val === '' || parseInt(val) === defaultVal) {
+    delete state.overrides[key];
+  } else {
+    state.overrides[key] = parseInt(val);
+  }
+  saveState();
+}
+
+// ---- TEMP UNIT TOGGLE ----
+document.querySelectorAll('.temp-unit-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.temp-unit-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.tempUnit = btn.dataset.unit;
+    saveState();
+    if (Object.keys(forecastCache).length > 0) {
+      const active = state.locations.filter(l => state.activeLocations.includes(l.id));
+      const results = active.filter(l => forecastCache[l.id]).map(l => ({ loc: l, data: forecastCache[l.id] }));
+      if (results.length > 0) renderForecastTables(results);
+    }
+  });
+});
+
+// ---- RULES ----
+function renderRules() {
+  const grid = document.getElementById('rules-grid');
+  grid.innerHTML = state.rules.map(rule => `
+    <div class="rule-card">
+      <h4>
+        <span class="weather-icon">${rule.icon}</span>
+        ${esc(rule.name)}
+        <span class="badge badge-${rule.badge}">${rule.modifier ? 'modifier' : 'rule'}</span>
+      </h4>
+      <div class="inline-group" style="margin-bottom:0.5rem">
+        <label style="margin-bottom:0;width:auto">Staff %:</label>
+        <input type="number" style="width:70px;margin-bottom:0" value="${rule.staffPct}" min="10" max="200"
+          onchange="updateRulePct('${rule.id}', this.value)">
+        <label style="margin-bottom:0;width:auto">Enabled:</label>
+        <input type="checkbox" style="width:auto;margin-bottom:0" ${rule.enabled ? 'checked' : ''}
+          onchange="toggleRule('${rule.id}', this.checked)">
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted)">Priority: ${rule.priority}</div>
+    </div>
+  `).join('');
+}
+
+function updateRulePct(id, val) {
+  const rule = state.rules.find(r => r.id === id);
+  if (rule) { rule.staffPct = parseInt(val); saveState(); }
+}
+
+function toggleRule(id, enabled) {
+  const rule = state.rules.find(r => r.id === id);
+  if (rule) { rule.enabled = enabled; saveState(); }
+}
+
+function resetRulesToDefault() {
+  if (!confirm('Reset all rules to defaults?')) return;
+  state.rules = defaultRules();
+  saveState();
+  renderRules();
+  showToast('Rules reset to defaults.');
+}
+
+function saveRules() {
+  saveState();
+  showToast('Rules saved!');
+}
+
+// ---- EXPORT ----
+function exportCSV() {
+  const active = state.locations.filter(l => state.activeLocations.includes(l.id) && forecastCache[l.id]);
+  if (active.length === 0) { showToast('No forecast data to export.'); return; }
+
+  let csv = 'Location,City,State,Date,Day,Weather,High_F,Low_F,Precip_in,Snow_in,Wind_mph,Cloud_pct,Rule,Staff_Pct,Projected_Staff,Override\n';
+
+  for (const loc of active) {
+    const daily = forecastCache[loc.id].daily;
+    for (let i = 0; i < daily.time.length; i++) {
+      const date = new Date(daily.time[i] + 'T12:00:00');
+      const dow = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const dayData = {
+        tempHigh: daily.temperature_2m_max[i], tempLow: daily.temperature_2m_min[i],
+        precip: daily.precipitation_sum[i], snow: daily.snowfall_sum[i],
+        weatherCode: daily.weathercode[i], wind: daily.windspeed_10m_max[i],
+        cloud: daily.cloud_cover_mean ? daily.cloud_cover_mean[i] : 50, isWeekend
+      };
+      const result = evaluateStaffing(dayData, loc);
+      const overrideKey = `${loc.id}_${daily.time[i]}`;
+      const override = state.overrides[overrideKey];
+      const finalStaff = override !== undefined ? override : result.staff;
+
+      csv += `"${loc.name}","${loc.city}","${loc.state}",${daily.time[i]},${dow},` +
+        `"${weatherCodeToText(dayData.weatherCode)}",${Math.round(dayData.tempHigh)},${Math.round(dayData.tempLow)},` +
+        `${dayData.precip.toFixed(2)},${dayData.snow.toFixed(1)},${Math.round(dayData.wind)},${Math.round(dayData.cloud)},` +
+        `"${result.rule.name}",${result.pct},${finalStaff},${override !== undefined ? override : ''}\n`;
+    }
+  }
+
+  downloadFile('cheetah_clean_staffing.csv', csv, 'text/csv');
+}
+
+function printView() {
+  window.print();
+}
+
+function exportData() {
+  downloadFile('cheetah_clean_backup.json', JSON.stringify(state, null, 2), 'application/json');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.locations) {
+        state = imported;
+        saveState();
+        showToast('Data imported!');
+        renderDashboard();
+        renderLocations();
+      } else {
+        showToast('Invalid data file.');
+      }
+    } catch(err) { showToast('Error reading file.'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('Delete ALL locations, rules, and overrides? This cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = defaultState();
+  forecastCache = {};
+  saveState();
+  showToast('All data cleared.');
+  switchTab('dashboard');
+}
+
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ---- UTIL ----
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ---- INIT ----
+populateStates();
+renderDashboard();
+renderLocations();
+</script>
+</body>
+</html>
